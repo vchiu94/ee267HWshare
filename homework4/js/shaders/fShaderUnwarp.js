@@ -37,9 +37,24 @@ uniform vec2 K;
 // distance between lens and screen in [mm]
 uniform float distLensScreen;
 
-void main() {
 
-	gl_FragColor = texture2D( map, textureCoords );
+void main() {
+	vec2 textCoordsMM = textureCoords*viewportSize;
+	vec2 centerCoordsMM = centerCoordinate*viewportSize;
+ 	float rTilde = distance(textCoordsMM,centerCoordsMM);
+	
+	//float d = abs(1.0/((1.0/40.0)-(1.0/39.0)));
+	float r = rTilde/distLensScreen;
+	float distorter = 1.0+K[0]*pow(r,2.0)+K[1]*pow(r,4.0);
+	vec2 distortedCoords = (2.0*textureCoords-vec2(1.0,1.0))*distorter;
+	distortedCoords = (distortedCoords+vec2(1.0,1.0))/2.0;
+	if(distortedCoords[0] >= 1.0 || distortedCoords[0] < 0.0 || distortedCoords[1] >= 1.0 || distortedCoords[1] < 0.0){
+	gl_FragColor=vec4(0, 0, 0, 1);
+	}
+	else{
+		gl_FragColor = texture2D( map, distortedCoords  );
+	} 
+	//gl_FragColor = texture2D( map, distortedCoords );
 
 }
 ` );
